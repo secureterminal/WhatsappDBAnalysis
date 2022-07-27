@@ -1,7 +1,7 @@
 # import pandas as pd
 import datetime
 # from datetime import date
-from helper_functions import check_removals, check_who_changed_group_details
+from helper_functions import check_removals, check_who_changed_group_details, replace_time_format
 import re
 import psycopg2.extras as px
 import psycopg2
@@ -81,7 +81,7 @@ try:
                                     pass
                                 else:
                                     print(x, item)
-                                    time_format = new_text[0].replace('22,', '2022').replace('21,', '2021')
+                                    time_format = replace_time_format(new_text[0])
                                     time_format = datetime.datetime.strptime(time_format, '%m/%d/%Y %H:%M')
                                     contact = new_text[1].split(':', 1)[0]
                                     if contact[0] == '+':

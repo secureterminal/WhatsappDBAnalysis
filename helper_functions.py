@@ -41,3 +41,8 @@ def check_who_changed_group_details(user_str):
 def check_str_conditions(strg):
     print(strg)
     pass
+
+
+def replace_time_format(time_str):
+    new_str = time_str.replace('22,', '2022').replace('21,', '2021').replace('20,', '2020').replace('19,', '2019')
+    return new_str
