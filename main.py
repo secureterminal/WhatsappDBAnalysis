@@ -14,7 +14,8 @@ password = '2106'
 port_id = 5432
 conn = None
 
-file_name = "DBFiles/POSN.txt"
+file_name = "POSN.txt"
+path = "DBFiles/" + file_name
 table_name = os.path.splitext(file_name)[0].lower()
 whatsapp_export_first_line = 'Messages and calls are end-to-end encrypted. No one outside of this chat, not even ' \
                              'WhatsApp, can read or listen to them. Tap to learn more.. '
@@ -60,7 +61,7 @@ try:
                 cur.execute(create_query)
                 print('DB created')
 
-                with open(file_name, encoding="utf8") as file:
+                with open(path, encoding="utf8") as file:
                     for item in file:
 
                         if item == '\n':
