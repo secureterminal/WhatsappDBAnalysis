@@ -1,0 +1,118 @@
+# import pandas as pd
+import datetime
+# from datetime import date
+from helper_functions import check_removals, check_who_changed_group_details
+import re
+import psycopg2.extras as px
+import psycopg2
+import os
+
+hostname = 'localhost'
+database = 'WhatsappDB'
+username = 'postgres'
+password = '2106'
+port_id = 5432
+conn = None
+
+file_name = "POSN.txt"
+table_name = os.path.splitext(file_name)[0].lower()
+whatsapp_export_first_line = 'Messages and calls are end-to-end encrypted. No one outside of this chat, not even ' \
+                             'WhatsApp, can read or listen to them. Tap to learn more.. '
+new_user_notification = "You joined using this group's invite link. "
+print(whatsapp_export_first_line)
+x = 0
+prev_item = ''
+
+all_tables = []
+all_tables_query = """SELECT table_name FROM information_schema.tables
+                   WHERE table_schema = 'public'"""
+insert_query = '''INSERT INTO ''' + table_name + '''
+                        (contact_db, date, msg)
+                        VALUES (%s, %s, %s)'''
+create_query = '''CREATE TABLE IF NOT EXISTS ''' + table_name + ''' (
+                    id serial,
+                    contact_db varchar(40) NOT NULL,
+                    date timestamp NOT NULL,
+                    msg TEXT NOT NULL
+
+                )'''
+
+
+try:
+    with psycopg2.connect(
+        host=hostname,
+        dbname=database,
+        user=username,
+        password=password,
+        port=port_id
+    ) as conn:
+
+        with conn.cursor(cursor_factory=px.DictCursor) as cur:
+            cur.execute(all_tables_query)
+            for table in cur.fetchall():
+                all_tables.append(table[0])
+            print(all_tables)
+
+            # Check if table have been created previously, if no, then create it and insert data
+            if table_name not in all_tables:
+                # Run the create table query
+                cur.execute(create_query)
+                print('DB created')
+
+                with open(file_name, encoding="utf8") as file:
+                    for item in file:
+
+                        if item == '\n':
+                            pass
+                        elif re.search(r'(\d+/\d+/\d+, \d+:\d+)', item[0:15]):
+                            new_text = prev_item.replace('\n', '. ').replace("\x00", "", -1).split(' - ', 1)
+
+                            if new_text[0] != '':
+                                if new_text[1] == whatsapp_export_first_line:
+                                    print('first line', new_text[1])
+                                    pass
+                                elif x < 3 and ' created group ' in new_text[1]:
+                                    print('created', new_text[1])
+                                    pass
+                                elif check_who_changed_group_details(new_text[1]):
+                                    pass
+                                elif ' changed the subject from ' in new_text[1]:
+                                    print('changed subject', new_text[1])
+                                    pass
+                                else:
+                                    print(x, item)
+                                    time_format = new_text[0].replace('22,', '2022').replace('21,', '2021')
+                                    time_format = datetime.datetime.strptime(time_format, '%m/%d/%Y %H:%M')
+                                    contact = new_text[1].split(':', 1)[0]
+                                    if contact[0] == '+':
+                                        contact = contact.replace(' ', '')
+                                    user_msg = new_text[1].split(':', 1)[1]
+                                    # print(x, time_format, contact, user_msg)
+
+                                    # Insert values
+                                    single_row = (contact, time_format, user_msg)
+                                    cur.execute(insert_query, single_row)
+                            else:
+                                # print(prev_item, 'is blank')
+                                pass
+                            prev_item = item
+                            x = x + 1
+
+                        else:
+                            prev_item = prev_item + '' + item
+
+            else:
+                print('Table exists')
+            # cur.execute('SELECT * FROM employee')
+            # for record in cur.fetchall():
+            #     print(record['name'], record['salary'])
+            #
+            # # conn.commit()
+
+
+except Exception as error:
+    print(error)
+
+finally:
+    if conn is not None:
+        conn.close()
