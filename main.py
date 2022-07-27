@@ -14,7 +14,7 @@ password = '2106'
 port_id = 5432
 conn = None
 
-file_name = "POSN.txt"
+file_name = "DBFiles/POSN.txt"
 table_name = os.path.splitext(file_name)[0].lower()
 whatsapp_export_first_line = 'Messages and calls are end-to-end encrypted. No one outside of this chat, not even ' \
                              'WhatsApp, can read or listen to them. Tap to learn more.. '
@@ -36,6 +36,7 @@ create_query = '''CREATE TABLE IF NOT EXISTS ''' + table_name + ''' (
                     msg TEXT NOT NULL
 
                 )'''
+select_query = '''SELECT * FROM ''' + table_name
 
 
 try:
@@ -103,11 +104,13 @@ try:
 
             else:
                 print('Table exists')
-            # cur.execute('SELECT * FROM employee')
-            # for record in cur.fetchall():
-            #     print(record['name'], record['salary'])
-            #
-            # # conn.commit()
+                cur.execute(select_query)
+                a=0
+                for record in cur.fetchall():
+                    # print(record['name'], record['salary'])
+                    a = a + 1
+                print(a)
+
 
 
 except Exception as error:
