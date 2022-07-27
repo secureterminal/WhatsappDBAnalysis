@@ -82,14 +82,14 @@ try:
                                     print('changed subject', new_text[1])
                                     pass
                                 else:
-                                    print(x, item)
+                                    # print(x, item)
                                     time_format = replace_time_format(new_text[0])
                                     time_format = datetime.datetime.strptime(time_format, '%m/%d/%Y %H:%M')
                                     contact = new_text[1].split(':', 1)[0]
                                     if contact[0] == '+':
                                         contact = contact.replace(' ', '')
                                     user_msg = new_text[1].split(':', 1)[1]
-                                    # print(x, time_format, contact, user_msg)
+                                    print(x, time_format, contact, user_msg)
 
                                     # Insert values
                                     single_row = (contact, time_format, user_msg)
