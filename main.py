@@ -1,4 +1,4 @@
-# import pandas as pd
+import pandas as pd
 import datetime
 # from datetime import date
 from helper_functions import check_removals, check_who_changed_group_details, replace_time_format
@@ -13,6 +13,7 @@ username = 'postgres'
 password = '2106'
 port_id = 5432
 conn = None
+df = pd.DataFrame()
 
 file_name = "POSN.txt"
 path = "DBFiles/" + file_name
@@ -108,10 +109,15 @@ try:
                 cur.execute(select_query)
                 a=0
                 for record in cur.fetchall():
-                    # print(record['name'], record['salary'])
-                    a = a + 1
-                print(a)
+                    # print(record['contact'], record['user_msg'])
+                    df2 = pd.DataFrame({'contact': record[1], 'user_msg': record[3], 'time_format': record[2]},
+                                       index=[record[0]])
 
+                    df = pd.concat([df, df2])
+
+                    # conn.commit()
+                print(df)
+                df.to_csv('final.csv', index=False)
 
 
 except Exception as error:
